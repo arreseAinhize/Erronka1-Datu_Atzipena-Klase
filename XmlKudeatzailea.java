@@ -241,6 +241,7 @@ public class XmlKudeatzailea {
             File xmlFile = new File(path);
             if (!xmlFile.exists()) {
                 System.out.println(Gehigarriak.Gorria + "Fitxategia ez da existitzen: " + path + Gehigarriak.RESET);
+                Thread.sleep(2000);
                 return;
             }
 

@@ -1,6 +1,19 @@
 import java.io.File;
 import java.util.Scanner;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 public class XmlKudeatzailea {
     final static String XML_DIR = "./fitxategiak/xml/";
 
@@ -89,25 +102,47 @@ public class XmlKudeatzailea {
         do {
             Gehigarriak.kontsolaGarbitu();
             System.out.print(
-                    Gehigarriak.Horia + "Sartu sortu nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
+                    Gehigarriak.Horia + "Sartu sortu nahi duzun fitxategiaren izena: " + Gehigarriak.RESET);
             fileName = sc.next();
             fileName = Filtroak.removeSpaces(fileName); // hutsuneak kendu
             path = XML_DIR + fileName + ".xml";
 
             File fitx = new File(path);
             if (fitx.exists()) {
-                System.out.println(Gehigarriak.Gorria + "Jada fitxategi batek izen hori du, zehiatu beste batekin."
+                System.out.println(Gehigarriak.Gorria + "Jada fitxategi batek izen hori du, saiatu beste batekin."
                         + Gehigarriak.RESET);
                 continue; // berriro galdetu
             }
 
-            if (ErroreenKudeaketa.fitxategiaSortu(path)) {
-                System.out.println(Gehigarriak.Berdea + "Fitxategia ondo sortu da: " + path + Gehigarriak.RESET);
-            } else {
-                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da sortu: " + path + Gehigarriak.RESET);
-                ErroreenKudeaketa.fitxategiaSortu(path);
+            try {
+                // === Crear el documento XML con cabecera y raíz ===
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                Document doc = dBuilder.newDocument();
+
+                // Crear nodo raíz <pertsonak>
+                Element rootElement = doc.createElement("pertsonak");
+                doc.appendChild(rootElement);
+
+                // Guardar el documento con cabecera y formato bonito
+                TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+                DOMSource source = new DOMSource(doc);
+                StreamResult result = new StreamResult(fitx);
+                transformer.transform(source, result);
+
+                System.out.println(Gehigarriak.Berdea + "XML fitxategia ondo sortu da: " + path + Gehigarriak.RESET);
+                break; // fitxategia ondo sortu bada, irten loop-etik
+
+            } catch (Exception e) {
+                System.out.println(Gehigarriak.Gorria + "Errorea XML fitxategia sortzean." + Gehigarriak.RESET);
+                e.printStackTrace();
             }
-            break; // fitxategia ondo sortu bada, irten loop-etik
 
         } while (true);
     }
@@ -135,6 +170,7 @@ public class XmlKudeatzailea {
 
         do {
             Gehigarriak.kontsolaGarbitu();
+            xmlFitxategiakBistaratu(); // Mostrar XML existentes
             System.out.print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena: " + Gehigarriak.RESET);
             fileName = sc.next();
             fileName = Filtroak.removeSpaces(fileName); // hutsuneak kendu
@@ -142,32 +178,136 @@ public class XmlKudeatzailea {
 
             File fitx = new File(path);
             if (!fitx.exists()) {
-                System.out.println(Gehigarriak.Gorria + "Ez da fitxategi hori aurkitu, saiatu beste batekin."
-                        + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "Ez da fitxategi hori aurkitu, saiatu beste batekin." + Gehigarriak.RESET);
                 System.out.print(Gehigarriak.Horia + "Sakatu enter aurrera joateko..." + Gehigarriak.RESET);
-                sc.nextLine(); // lerro hau gehitu behar da next() eta nextLine() arteko traba saihesteko
-                continue; // berriro galdetu
+                sc.nextLine(); // next() eta nextLine() arteko traba saihesteko
+                continue;
             }
 
             System.out.println(Gehigarriak.Urdina + "Fitxategiaren edukia: " + path + Gehigarriak.RESET);
-            ErroreenKudeaketa.fitxategiaIrakurri(path);
-            break; // fitxategia ondo irakurri bada, irten loop-etik
 
+            // === LEER XML ===
+            try {
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                Document doc = dBuilder.parse(fitx);
+                doc.getDocumentElement().normalize();
+
+                NodeList pertsonaList = doc.getElementsByTagName("pertsona");
+                if (pertsonaList.getLength() == 0) {
+                    System.out.println(Gehigarriak.Horia + "Ez dago pertsonarik fitxategian." + Gehigarriak.RESET);
+                } else {
+                    for (int i = 0; i < pertsonaList.getLength(); i++) {
+                        Node pertsonaNode = pertsonaList.item(i);
+                        if (pertsonaNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element pertsonaElem = (Element) pertsonaNode;
+                            String nan = pertsonaElem.getElementsByTagName("nan").item(0).getTextContent();
+                            String helbidea = pertsonaElem.getElementsByTagName("helbidea").item(0).getTextContent();
+
+                            System.out.println(Gehigarriak.Berdea + "Pertsona " + (i + 1) + ":" + Gehigarriak.RESET);
+                            System.out.println("  NAN: " + nan);
+                            System.out.println("  Helbidea: " + helbidea);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out
+                        .println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da irakurri." + Gehigarriak.RESET);
+                e.printStackTrace();
+            }
+
+            break; // fitxategia ondo irakurri bada, irten loop-etik
         } while (true);
     }
 
     private static void xmlFitxategiaGehitu() {
+        System.out.println("XML fitxategian datuak gehitu");
         Scanner sc = new Gehigarriak().in;
-        System.out.println("Gehitu XML fitxategiaren datuak");
-        System.out.print(Gehigarriak.Horia + "Sakatu enter aurrera joateko..." + Gehigarriak.RESET);
-        sc.nextLine(); // lerro hau gehitu behar da next() eta nextLine() arteko traba saihesteko
+
+        // Mostrar XML existentes
+        xmlFitxategiakBistaratu();
+
+        System.out.print(
+                Gehigarriak.Horia + "Zein fitxategiri datuak gehitu nahi dizkiozu? Sartu izena: " + Gehigarriak.RESET);
+        String fileName = sc.next();
+        fileName = Filtroak.removeSpaces(fileName);
+        String path = XML_DIR + fileName + ".xml";
+
+        sc.nextLine(); // limpiar buffer
+
+        // === AÑADIR AL XML ===
+        try {
+            File xmlFile = new File(path);
+            if (!xmlFile.exists()) {
+                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da existitzen: " + path + Gehigarriak.RESET);
+                return;
+            }
+
+            // === PEDIR DATOS ===
+            String nan, helbidea;
+
+            // Validar NAN
+            do {
+                System.out.print("NAN (8 zenbaki + 1 letra): ");
+                nan = sc.nextLine();
+                if (!Filtroak.isDNI(nan)) {
+                    System.out.println(
+                            Gehigarriak.Gorria + "NAN okerra. 8 zenbaki eta 1 letra izan behar ditu."
+                                    + Gehigarriak.RESET);
+                    continue;
+                }
+                if (ErroreenKudeaketa.ifExistsNanXML(nan, path)) { // método que verifica si el nan ya existe
+                    continue;
+                }
+                break;
+            } while (true);
+
+            // Helbidea
+            System.out.print("Helbidea: ");
+            helbidea = sc.nextLine();
+            helbidea = Filtroak.removeSpaces(helbidea);
+
+            // Cargar XML existente
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            // Crear nuevo nodo <pertsona>
+            Element pertsona = doc.createElement("pertsona");
+
+            Element nanElem = doc.createElement("nan");
+            nanElem.appendChild(doc.createTextNode(nan));
+            pertsona.appendChild(nanElem);
+
+            Element helbElem = doc.createElement("helbidea");
+            helbElem.appendChild(doc.createTextNode(helbidea));
+            pertsona.appendChild(helbElem);
+
+            // Añadirlo al nodo raíz <pertsonak>
+            doc.getDocumentElement().appendChild(pertsona);
+
+            // Guardar cambios con formato bonito
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(xmlFile);
+            transformer.transform(source, result);
+
+            System.out.println(Gehigarriak.Berdea + "Datuak ondo gehitu dira fitxategian." + Gehigarriak.RESET);
+
+        } catch (Exception e) {
+            System.out.println(
+                    Gehigarriak.Gorria + "Errorea: XML fitxategian datuak ezin izan dira gehitu." + Gehigarriak.RESET);
+            e.printStackTrace();
+        }
     }
 
     private static void xmlFitxategiaEguneratu() {
-        Scanner sc = new Gehigarriak().in;
         System.out.println("Eguneratu XML fitxategia");
-        System.out.print(Gehigarriak.Horia + "Sakatu enter aurrera joateko..." + Gehigarriak.RESET);
-        sc.nextLine(); // lerro hau gehitu behar da next() eta nextLine() arteko traba saihesteko
     }
 
     private static void xmlFitxategiaEzabatu() {
@@ -202,9 +342,6 @@ public class XmlKudeatzailea {
     }
 
     private static void xmlFitxategiaCSVraBihurtu() {
-        Scanner sc = new Gehigarriak().in;
         System.out.println("XML fitxategia CSV formatura bihurtu");
-        System.out.print(Gehigarriak.Horia + "Sakatu enter aurrera joateko..." + Gehigarriak.RESET);
-        sc.nextLine(); // lerro hau gehitu behar da next() eta nextLine() arteko traba saihesteko
     }
 }

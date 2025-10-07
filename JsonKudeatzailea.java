@@ -344,16 +344,26 @@ public class JsonKudeatzailea {
         String fileName = sc.next();
         fileName = Filtroak.removeSpaces(fileName);
         String path = JSON_DIR + fileName + ".json";
+        String erantzuna;
+
+        do{
+            System.out.print(Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
+            erantzuna = sc.next().toLowerCase();
+        }while(erantzuna != "bai" || erantzuna != "ez");
 
         File fitx = new File(path);
-        if (fitx.exists()) {
-            if (fitx.delete()) {
-                System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+
+        if(erantzuna.equals("bai")){
+            if (fitx.exists()) {
+                if (fitx.delete()) {
+                    System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+                } else {
+                    System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                }
             } else {
-                System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
             }
-        } else {
-            System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
         }
+        
     }
 }

@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -60,7 +61,7 @@ public class CsvKudeatzailea {
                         break;
                     case "6":
                         Gehigarriak.kontsolaGarbitu();
-                        //txtFitxategiaCSVraBihurtu();
+                        csvFitxategiaEzabatu();
                         System.out.println("CSV fitxategia ezabatu da.");
                         break;
                     case "7":
@@ -172,6 +173,34 @@ public class CsvKudeatzailea {
             System.out.println("Fitxategia ez da aurkitu.");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void csvFitxategiaEzabatu(){
+        String fileName, path;
+        System.out.print(Gehigarriak.Horia + "Zein fitxategi ezabatu nahi duzu? Sartu izena: " + Gehigarriak.RESET);
+        fileName = sc.next();
+        Filtroak.removeSpaces(fileName);
+        path = CSV_DIR + fileName + ".csv";
+        String erantzuna;
+
+        do{
+            System.out.print(Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
+            erantzuna = sc.next().toLowerCase();
+        }while(erantzuna != "bai" || erantzuna != "ez");
+        
+        File fitxategia = new File(path);
+
+        if(erantzuna.equals("bai")){
+            if(fitxategia.exists()){
+                if (fitxategia.delete()){
+                    System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+                } else {
+                    System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                }
+            }else{
+                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
+            }
         }
     }
 }

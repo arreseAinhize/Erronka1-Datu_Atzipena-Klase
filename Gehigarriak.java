@@ -13,6 +13,10 @@ public class Gehigarriak {
     public static final String Cyan = "\u001B[36m";
     public static final String Zuria = "\u001B[37m";
 
+    /** MEJORAS FURUTRAS
+     * METER PATH Y EXTENSIONES COMO STATIC final 
+     */
+
     public static void kontsolaGarbitu() {
         System.out.print("\033[H\033[2J");
         System.out.flush();

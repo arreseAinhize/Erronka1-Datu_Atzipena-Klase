@@ -10,9 +10,9 @@ import java.util.Scanner;
 public class CsvKudeatzailea {
     private static Scanner sc = new Gehigarriak().in;
     private static final String CSV_DIR = "./fitxategiak/csv/";
-        private static final String XML_DIR = "./fitxategiak/xml/";
+    //private static final String XML_DIR = "./fitxategiak/xml/";
     private static final String TXT_DIR = "./fitxategiak/txt/";
-    private static final String JSON_DIR = "./fitxategiak/json/";
+    //private static final String JSON_DIR = "./fitxategiak/json/";
 
 
     public static void menua() {
@@ -188,7 +188,7 @@ public class CsvKudeatzailea {
             System.out.print(Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
             erantzuna = sc.next().toLowerCase();
         }while(erantzuna != "bai" || erantzuna != "ez");
-        
+
         File fitxategia = new File(path);
 
         if(erantzuna.equals("bai")){

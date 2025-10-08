@@ -27,7 +27,7 @@ public class MainApp {
                         System.out.print(Gehigarriak.Horia + "Aukera: " + Gehigarriak.RESET);
                         aukera = new Gehigarriak().in.next();
                         break;
-                }                
+                }
             }else{
                 Gehigarriak.kontsolaGarbitu();
                 System.out.print(Gehigarriak.Gorria + "Zenbaki bat sartu behar duzu!" + Gehigarriak.RESET);

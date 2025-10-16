@@ -168,20 +168,21 @@ public class XmlKudeatzailea {
         String fileName, path;
         Scanner sc = new Gehigarriak().in;
 
-        do {
+        while (true) {
             Gehigarriak.kontsolaGarbitu();
             xmlFitxategiakBistaratu(); // Mostrar XML existentes
+
             System.out.print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena: " + Gehigarriak.RESET);
-            fileName = sc.next();
-            fileName = Filtroak.removeSpaces(fileName); // hutsuneak kendu
+            fileName = sc.nextLine(); // leer toda la línea para evitar problemas de buffer
+            fileName = Filtroak.removeSpaces(fileName); // quitar espacios
             path = XML_DIR + fileName + ".xml";
 
             File fitx = new File(path);
             if (!fitx.exists()) {
                 System.out.println(
                         Gehigarriak.Gorria + "Ez da fitxategi hori aurkitu, saiatu beste batekin." + Gehigarriak.RESET);
-                System.out.print(Gehigarriak.Horia + "Sakatu enter aurrera joateko..." + Gehigarriak.RESET);
-                sc.nextLine(); // next() eta nextLine() arteko traba saihesteko
+                System.out.print(Gehigarriak.Horia + "Sakatu Enter aurrera joateko..." + Gehigarriak.RESET);
+                sc.nextLine();
                 continue;
             }
 
@@ -216,9 +217,8 @@ public class XmlKudeatzailea {
                         .println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da irakurri." + Gehigarriak.RESET);
                 e.printStackTrace();
             }
-
-            break; // fitxategia ondo irakurri bada, irten loop-etik
-        } while (true);
+            break;
+        }
     }
 
     private static void xmlFitxategiaGehitu() {
@@ -308,7 +308,96 @@ public class XmlKudeatzailea {
     }
 
     private static void xmlFitxategiaEguneratu() {
-        System.out.println("Eguneratu XML fitxategia");
+        System.out.println("XML fitxategian datuak eguneratu");
+        Scanner sc = new Gehigarriak().in;
+
+        // Mostrar XML existentes
+        xmlFitxategiakBistaratu();
+
+        System.out.print(
+                Gehigarriak.Horia + "Zein fitxategiko datuak eguneratu nahi dituzu? Sartu izena: " + Gehigarriak.RESET);
+        String fileName = sc.next();
+        fileName = Filtroak.removeSpaces(fileName);
+        String path = XML_DIR + fileName + ".xml";
+
+        sc.nextLine(); // limpiar buffer
+
+        try {
+            File xmlFile = new File(path);
+            if (!xmlFile.exists()) {
+                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da existitzen: " + path + Gehigarriak.RESET);
+                Thread.sleep(2000);
+                return;
+            }
+
+            // === PEDIR NAN DE LA PERSONA A ACTUALIZAR ===
+            String nan;
+            do {
+                System.out.print("Eguneratu nahi duzun pertsonaren NAN (8 zenbaki + 1 letra): ");
+                nan = sc.nextLine();
+                if (!Filtroak.isDNI(nan)) {
+                    System.out.println(
+                            Gehigarriak.Gorria + "NAN okerra. 8 zenbaki eta 1 letra izan behar ditu."
+                                    + Gehigarriak.RESET);
+                    continue;
+                }
+                if (!ErroreenKudeaketa.ifExistsNanXML(nan, path)) { // método que verifica si existe
+                    System.out.println(Gehigarriak.Gorria + "NAN ez da aurkitzen fitxategian." + Gehigarriak.RESET);
+                    return;
+                }
+                break;
+            } while (true);
+
+            // === CARGAR XML EXISTENTE ===
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            // Buscar el nodo <pertsona> con el NAN dado
+            NodeList pertsonak = doc.getElementsByTagName("pertsona");
+            boolean eguneratua = false;
+
+            for (int i = 0; i < pertsonak.getLength(); i++) {
+                Node pNode = pertsonak.item(i);
+                if (pNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element pertsona = (Element) pNode;
+                    String currentNan = pertsona.getElementsByTagName("nan").item(0).getTextContent();
+                    if (currentNan.equalsIgnoreCase(nan)) {
+                        // Pedir nuevos datos
+                        System.out.print("Helbidea berria: ");
+                        String helbidea = sc.nextLine();
+                        helbidea = Filtroak.removeSpaces(helbidea);
+
+                        pertsona.getElementsByTagName("helbidea").item(0).setTextContent(helbidea);
+                        eguneratua = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!eguneratua) {
+                System.out.println(Gehigarriak.Gorria + "NAN ez da aurkitu fitxategian." + Gehigarriak.RESET);
+                return;
+            }
+
+            // Guardar cambios con formato bonito
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(xmlFile);
+            transformer.transform(source, result);
+
+            System.out.println(Gehigarriak.Berdea + "Datuak ondo eguneratu dira fitxategian." + Gehigarriak.RESET);
+
+        } catch (Exception e) {
+            System.out.println(
+                    Gehigarriak.Gorria + "Errorea: XML fitxategian datuak ezin izan dira eguneratu."
+                            + Gehigarriak.RESET);
+            e.printStackTrace();
+        }
     }
 
     private static void xmlFitxategiaEzabatu() {

@@ -3,6 +3,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 public class ErroreenKudeaketa {
     public static boolean fitxategiaIrakurri(String path) {
         try {
@@ -86,4 +93,42 @@ public static boolean ifExistsNan(String nan, String path) {
     return false; // NAN no encontrado
 }
 
+    public static boolean ifExistsNanXML(String nan, String path) {
+        File fitx = new File(path);
+        if (!fitx.exists()) {
+            return false; // Si no existe el archivo, el NAN tampoco existe
+        }
+
+        try {
+            // Cargar XML
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(fitx);
+            doc.getDocumentElement().normalize();
+
+            // Obtener todos los nodos <nan>
+            NodeList nanList = doc.getElementsByTagName("nan");
+
+            for (int i = 0; i < nanList.getLength(); i++) {
+                Node nanNode = nanList.item(i);
+                if (nanNode.getNodeType() == Node.ELEMENT_NODE) {
+                    String nanValue = nanNode.getTextContent().trim();
+                    if (nanValue.equalsIgnoreCase(nan)) {
+                        System.out.println(Gehigarriak.Gorria + "Errorea: NAN hori jada existitzen da fitxategian!" + Gehigarriak.RESET);
+                        try {
+                            Thread.sleep(2000); // pausa para que el usuario vea el mensaje
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return true; // NAN encontrado
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(Gehigarriak.Gorria + "Errorea XML fitxategia irakurtzean!" + Gehigarriak.RESET);
+            e.printStackTrace();
+        }
+
+        return false; // NAN no encontrado
+    }
 }

@@ -86,7 +86,7 @@ public class JsonKudeatzailea {
         } while (!aukera.equals("7"));
     }
 
-    public static void jsonFitxategiakBistaratu() {
+    private static void jsonFitxategiakBistaratu() {
         System.out.println(Gehigarriak.Cyan + "================================");
         System.out.println(Gehigarriak.Berdea + "Fitxategi .json-ak:" + Gehigarriak.Urdina);
         try {
@@ -100,7 +100,7 @@ public class JsonKudeatzailea {
         System.out.println(Gehigarriak.Cyan + "================================");
     }
 
-    public static void jsonFitxategiaSortu() {
+    private static void jsonFitxategiaSortu() {
         String fileName;
         do {
             Gehigarriak.kontsolaGarbitu();
@@ -130,7 +130,7 @@ public class JsonKudeatzailea {
         } while (true);
     }
 
-    public static void jsonFitxategiaIrakurri() {
+    private static void jsonFitxategiaIrakurri() {
         jsonFitxategiakBistaratu();
         System.out.print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
         String fileName = sc.next();
@@ -155,7 +155,7 @@ public class JsonKudeatzailea {
         }
     }
 
-    public static void jsonFitxategiaGehitu() {
+    private static void jsonFitxategiaGehitu() {
         jsonFitxategiakBistaratu();
         System.out.print(Gehigarriak.Horia + "Zein fitxategiri datuak gehitu nahi dizkiozu? Sartu izena: " + Gehigarriak.RESET);
         String fileName = sc.next();
@@ -245,7 +245,7 @@ public class JsonKudeatzailea {
         }
     }
 
-    public static void jsonFitxategiaEguneratu() {
+    private static void jsonFitxategiaEguneratu() {
         jsonFitxategiakBistaratu();
         System.out.print(Gehigarriak.Horia + "Zein fitxategi eguneratu nahi duzu? Sartu izena: " + Gehigarriak.RESET);
         String fileName = sc.next();
@@ -338,22 +338,32 @@ public class JsonKudeatzailea {
         }
     }
 
-    public static void jsonFitxategiaEzabatu() {
+    private static void jsonFitxategiaEzabatu() {
         jsonFitxategiakBistaratu();
         System.out.print(Gehigarriak.Horia + "Zein fitxategi ezabatu nahi duzu? Sartu izena: " + Gehigarriak.RESET);
         String fileName = sc.next();
         fileName = Filtroak.removeSpaces(fileName);
         String path = JSON_DIR + fileName + ".json";
+        String erantzuna;
+
+        do{
+            System.out.print(Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
+            erantzuna = sc.next().toLowerCase();
+        }while(erantzuna != "bai" || erantzuna != "ez");
 
         File fitx = new File(path);
-        if (fitx.exists()) {
-            if (fitx.delete()) {
-                System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+
+        if(erantzuna.equals("bai")){
+            if (fitx.exists()) {
+                if (fitx.delete()) {
+                    System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+                } else {
+                    System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                }
             } else {
-                System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
             }
-        } else {
-            System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
         }
+        
     }
 }

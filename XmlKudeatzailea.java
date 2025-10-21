@@ -542,5 +542,4 @@ public class XmlKudeatzailea {
         }
         return "";
     }
-
 }

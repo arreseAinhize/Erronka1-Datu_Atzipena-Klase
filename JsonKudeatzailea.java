@@ -29,7 +29,8 @@ public class JsonKudeatzailea {
             System.out.println("4. JSON fitxategian datuak gehitu");
             System.out.println("5. JSON fitxategia eguneratu.");
             System.out.println("6. JSON fitxategia ezabatu.");
-            System.out.println(Gehigarriak.Urdina + "7. Irten");
+            System.out.println("7. XML fitxategia CSV formatura bihurtu.");
+            System.out.println(Gehigarriak.Urdina + "8. Irten");
             System.out.println(Gehigarriak.Cyan + "================================");
             System.out.print(Gehigarriak.Horia + "Aukera: " + Gehigarriak.RESET);
             aukera = sc.next();
@@ -68,6 +69,11 @@ public class JsonKudeatzailea {
                         break;
                     case "7":
                         Gehigarriak.kontsolaGarbitu();
+                        jsonFitxategiaCSVraBihurtu();
+                        System.out.println("XML fitxategia CSV formatura bihurtu");
+                        break;
+                    case "8":
+                        Gehigarriak.kontsolaGarbitu();
                         System.out.println(Gehigarriak.Gorria + "Atzera!");
                         MainApp.main(null);
                         return;
@@ -104,14 +110,16 @@ public class JsonKudeatzailea {
         String fileName;
         do {
             Gehigarriak.kontsolaGarbitu();
-            System.out.print(Gehigarriak.Horia + "Sartu sortu nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
+            System.out.print(
+                    Gehigarriak.Horia + "Sartu sortu nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
             fileName = sc.next();
             fileName = Filtroak.removeSpaces(fileName);
             String path = JSON_DIR + fileName + ".json";
 
             File fitx = new File(path);
             if (fitx.exists()) {
-                System.out.println(Gehigarriak.Gorria + "Jada fitxategi batek izen hori du, zehiatu beste batekin." + Gehigarriak.RESET);
+                System.out.println(Gehigarriak.Gorria + "Jada fitxategi batek izen hori du, zehiatu beste batekin."
+                        + Gehigarriak.RESET);
                 continue;
             }
 
@@ -132,16 +140,19 @@ public class JsonKudeatzailea {
 
     private static void jsonFitxategiaIrakurri() {
         jsonFitxategiakBistaratu();
-        System.out.print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
+        System.out
+                .print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
         String fileName = sc.next();
         fileName = Filtroak.removeSpaces(fileName);
         String path = JSON_DIR + fileName + ".json";
 
         try (Reader reader = new FileReader(path)) {
-            Type listType = new TypeToken<List<Pertsona>>() {}.getType();
+            Type listType = new TypeToken<List<Pertsona>>() {
+            }.getType();
             List<Pertsona> pertsonak = gson.fromJson(reader, listType);
             if (pertsonak == null || pertsonak.isEmpty()) {
-                System.out.println(Gehigarriak.Gorria + "Fitxategia hutsik dago edo ez da ondo irakurri." + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "Fitxategia hutsik dago edo ez da ondo irakurri." + Gehigarriak.RESET);
                 return;
             }
             System.out.println(Gehigarriak.Berdea + "Fitxategiko datuak:" + Gehigarriak.RESET);
@@ -157,7 +168,8 @@ public class JsonKudeatzailea {
 
     private static void jsonFitxategiaGehitu() {
         jsonFitxategiakBistaratu();
-        System.out.print(Gehigarriak.Horia + "Zein fitxategiri datuak gehitu nahi dizkiozu? Sartu izena: " + Gehigarriak.RESET);
+        System.out.print(
+                Gehigarriak.Horia + "Zein fitxategiri datuak gehitu nahi dizkiozu? Sartu izena: " + Gehigarriak.RESET);
         String fileName = sc.next();
         fileName = Filtroak.removeSpaces(fileName);
         String path = JSON_DIR + fileName + ".json";
@@ -165,7 +177,8 @@ public class JsonKudeatzailea {
         List<Pertsona> pertsonak = new ArrayList<>();
         // Kargatu fitxategiko datuak
         try (Reader reader = new FileReader(path)) {
-            Type listType = new TypeToken<List<Pertsona>>() {}.getType();
+            Type listType = new TypeToken<List<Pertsona>>() {
+            }.getType();
             pertsonak = gson.fromJson(reader, listType);
             if (pertsonak == null) {
                 pertsonak = new ArrayList<>();
@@ -180,16 +193,18 @@ public class JsonKudeatzailea {
         // NAN balidazioa + existitzen den ala ez
         do {
             System.out.print("NAN (8 zenbaki + 1 letra): ");
-            nan = sc.nextLine();
-            if (!Filtroak.isDNI(nan)) {
-                System.out.println(Gehigarriak.Gorria + "NAN okerra. 8 zenbaki eta 1 letra izan behar ditu." + Gehigarriak.RESET);
+            String nanInput = sc.nextLine();
+            if (!Filtroak.isDNI(nanInput)) {
+                System.out.println(
+                        Gehigarriak.Gorria + "NAN okerra. 8 zenbaki eta 1 letra izan behar ditu." + Gehigarriak.RESET);
                 continue;
             }
-            boolean exists = pertsonak.stream().anyMatch(p -> p.getNan().equalsIgnoreCase(nan));
+            boolean exists = pertsonak.stream().anyMatch(p -> p.getNan().equalsIgnoreCase(nanInput));
             if (exists) {
                 System.out.println(Gehigarriak.Gorria + "NAN hori jada existitzen da fitxategian." + Gehigarriak.RESET);
                 continue;
             }
+            nan = nanInput;
             break;
         } while (true);
 
@@ -199,7 +214,8 @@ public class JsonKudeatzailea {
             System.out.print("Izena: ");
             izena = sc.nextLine();
             if (!Filtroak.isIzena(izena)) {
-                System.out.println(Gehigarriak.Gorria + "Izena okerra. Letra bakarrik sartu behar da." + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "Izena okerra. Letra bakarrik sartu behar da." + Gehigarriak.RESET);
             }
         } while (!Filtroak.isIzena(izena));
 
@@ -209,30 +225,13 @@ public class JsonKudeatzailea {
             System.out.print("Abizena: ");
             abizena = sc.nextLine();
             if (!Filtroak.isIzena(abizena)) {
-                System.out.println(Gehigarriak.Gorria + "Abizena okerra. Letra bakarrik sartu behar da." + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "Abizena okerra. Letra bakarrik sartu behar da." + Gehigarriak.RESET);
             }
         } while (!Filtroak.isIzena(abizena));
 
-        // Adina balidazioa
-        int adina;
-        do {
-            System.out.print("Adina: ");
-            String adinaStr = sc.nextLine();
-            if (!Filtroak.isAdina(adinaStr)) {
-                System.out.println(Gehigarriak.Gorria + "Adina okerra. Zenbaki bakarrik sartu behar da." + Gehigarriak.RESET);
-                continue;
-            }
-            adina = Integer.parseInt(adinaStr);
-            break;
-        } while (true);
-
-        // Helbidea
-        System.out.print("Helbidea: ");
-        String helbidea = sc.nextLine();
-        helbidea = Filtroak.removeSpaces(helbidea);
-
         // Pertsona objektua sortu
-        Pertsona p = new Pertsona(nan, izena, abizena, adina, helbidea);
+        Pertsona p = new Pertsona(nan, izena, abizena);
         pertsonak.add(p);
 
         // Gorde JSON fitxategian
@@ -240,7 +239,8 @@ public class JsonKudeatzailea {
             gson.toJson(pertsonak, writer);
             System.out.println(Gehigarriak.Berdea + "Datuak ondo gehitu dira fitxategian." + Gehigarriak.RESET);
         } catch (IOException e) {
-            System.out.println(Gehigarriak.Gorria + "Errorea: Datuak ezin izan dira gehitu fitxategian." + Gehigarriak.RESET);
+            System.out.println(
+                    Gehigarriak.Gorria + "Errorea: Datuak ezin izan dira gehitu fitxategian." + Gehigarriak.RESET);
             e.printStackTrace();
         }
     }
@@ -254,10 +254,12 @@ public class JsonKudeatzailea {
 
         List<Pertsona> pertsonak;
         try (Reader reader = new FileReader(path)) {
-            Type listType = new TypeToken<List<Pertsona>>() {}.getType();
+            Type listType = new TypeToken<List<Pertsona>>() {
+            }.getType();
             pertsonak = gson.fromJson(reader, listType);
             if (pertsonak == null) {
-                System.out.println(Gehigarriak.Gorria + "Fitxategia hutsik dago edo ez da ondo irakurri." + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "Fitxategia hutsik dago edo ez da ondo irakurri." + Gehigarriak.RESET);
                 return;
             }
         } catch (IOException e) {
@@ -274,7 +276,8 @@ public class JsonKudeatzailea {
             System.out.print(Gehigarriak.Horia + "Eguneratu nahi duzun pertsonaren NAN-a sartu: " + Gehigarriak.RESET);
             nan = sc.nextLine();
             if (!Filtroak.isDNI(nan)) {
-                System.out.println(Gehigarriak.Gorria + "NAN okerra. 8 zenbaki + 1 letra izan behar du." + Gehigarriak.RESET);
+                System.out.println(
+                        Gehigarriak.Gorria + "NAN okerra. 8 zenbaki + 1 letra izan behar du." + Gehigarriak.RESET);
                 continue;
             }
             for (Pertsona p : pertsonak) {
@@ -307,27 +310,9 @@ public class JsonKudeatzailea {
             }
         } while (!Filtroak.isIzena(abizena));
 
-        int adina;
-        do {
-            System.out.print("Adina: ");
-            String adinaStr = sc.nextLine();
-            if (!Filtroak.isAdina(adinaStr)) {
-                System.out.println("Adina okerra. Zenbaki bakarrik sartu.");
-                continue;
-            }
-            adina = Integer.parseInt(adinaStr);
-            break;
-        } while (true);
-
-        System.out.print("Helbidea: ");
-        String helbidea = sc.nextLine();
-        helbidea = Filtroak.removeSpaces(helbidea);
-
         // Pertsona eguneratu
         pertsonaEguneratu.setIzena(izena);
         pertsonaEguneratu.setAbizena(abizena);
-        pertsonaEguneratu.setAdina(adina);
-        pertsonaEguneratu.setHelbidea(helbidea);
 
         // Gorde berriro JSON fitxategian
         try (Writer writer = new FileWriter(path)) {
@@ -346,24 +331,29 @@ public class JsonKudeatzailea {
         String path = JSON_DIR + fileName + ".json";
         String erantzuna;
 
-        do{
-            System.out.print(Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
+        do {
+            System.out.print(
+                    Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
             erantzuna = sc.next().toLowerCase();
-        }while(erantzuna != "bai" || erantzuna != "ez");
+        } while (erantzuna != "bai" || erantzuna != "ez");
 
         File fitx = new File(path);
 
-        if(erantzuna.equals("bai")){
+        if (erantzuna.equals("bai")) {
             if (fitx.exists()) {
                 if (fitx.delete()) {
                     System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
                 } else {
-                    System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
+                    System.out.println(
+                            Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu." + Gehigarriak.RESET);
                 }
             } else {
                 System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
             }
         }
-        
+    }
+
+    private static void jsonFitxategiaCSVraBihurtu() {
+        System.out.println("Se necesita maven para esta funcionalidad.");
     }
 }

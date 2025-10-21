@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.BufferedWriter;
+import java.util.Scanner;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

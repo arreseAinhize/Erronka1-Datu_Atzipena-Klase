@@ -413,7 +413,7 @@ public class TxtKudeatzailea {
         fileName = sc.next();
         Filtroak.removeSpaces(fileName);
         path = "./fitxategiak/txt/" + fileName + ".txt";
-        csvPath = "./fitxategiak/csv/" + fileName + "-convert_Form_TXT.csv";
+        csvPath = "./fitxategiak/csv/Datuak-CSV.csv";
 
         try {
             File txtFile = new File(path);

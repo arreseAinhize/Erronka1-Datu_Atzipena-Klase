@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class TxtKudeatzailea {
@@ -413,60 +415,77 @@ public class TxtKudeatzailea {
         path = "./fitxategiak/txt/" + fileName + ".txt";
         csvPath = "./fitxategiak/csv/" + fileName + "-convert_Form_TXT.csv";
 
-        // Fitxategia irakurri eta CSVra idatzi
-        try (BufferedReader br = new BufferedReader(new FileReader(path));
-                BufferedWriter bw = new BufferedWriter(new FileWriter(csvPath))) {
-
-            // CSV-ren kabezalak (Banatzailea: ';')
-            String cabezalak = "NAN;Izena;Abizena;Adina;Helbidea";
-            bw.write(cabezalak);
-            bw.newLine();
-
-            // TXT-ren banatzailea (adibidez, espazioa. Aldatu behar baduzu)
-            final String TXT_BANATZAILEA = ",";
-
-            // CSV-ren banatzailea
-            final String CSV_BANATZAILEA = ";";
-
-            String lerroa;
-            while ((lerroa = br.readLine()) != null) {
-
-                String[] datuak = lerroa.split(TXT_BANATZAILEA);
-                String csvLerroa = "";
-
-                // Egiaztatu lerroak zenbat zutabe dituen
-                if (datuak.length == 2) {
-                    // 1. Formatu Laburra: NAN eta Adina (2 zutabe)
-                    String nan = datuak[0];
-                    String adina = datuak[1];
-
-                    // NAN ; Izena ; Abizena ; Adina ; Helbidea
-                    csvLerroa = nan + CSV_BANATZAILEA +
-                            "" + CSV_BANATZAILEA + // Izena (Hutsik)
-                            "" + CSV_BANATZAILEA + // Abizena (Hutsik)
-                            adina + CSV_BANATZAILEA + // Adina
-                            ""; // Helbidea (Hutsik)
-
-                } else if (datuak.length == 5) {
-                    // 2. Formatu Osoa: NAN, Izena, Abizena, Adina, Helbidea (5 zutabe)
-                    // Datuak jada CSV kabezalarekin bat datoz, beraz, berriz muntatu besterik ez.
-                    csvLerroa = String.join(CSV_BANATZAILEA, datuak);
-
-                } else {
-                    // Beste formatu bat edo lerro akastuna
-                    System.err.println("OHARRA: Lerroak ez du espero den formatua (2 edo 5 zutabe): " + lerroa);
-                    continue; // Hurrengo lerrora salto egin
-
-                }
-
-                // CSV fitxategian idatzi
-                bw.write(csvLerroa);
-                bw.newLine();
+        try {
+            File txtFile = new File(path);
+            if (!txtFile.exists()) {
+                System.out.println("TXT fitxategia ez da aurkitu.");
+                return;
             }
 
-            System.out.println(Gehigarriak.Berdea + "Fitxategia ondo bihurtu da: " + csvPath + Gehigarriak.RESET);
-        } catch (FileNotFoundException e) {
-            System.out.println("Fitxategia ez da aurkitu.");
+            File csvFile = new File(csvPath);
+            boolean csvExists = csvFile.exists();
+
+            // --- Leer CSV existente ---
+            Map<String, String> mapaPorNan = new LinkedHashMap<>(); // NAN -> línea CSV
+            if (csvExists) {
+                try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+                    String linea;
+                    boolean primeraLinea = true;
+                    while ((linea = br.readLine()) != null) {
+                        if (primeraLinea) { // ignorar cabecera
+                            primeraLinea = false;
+                            continue;
+                        }
+                        String[] partes = linea.split(";", -1);
+                        if (partes.length > 0) {
+                            mapaPorNan.put(partes[0], linea);
+                        }
+                    }
+                }
+            }
+
+            // --- Leer TXT y actualizar/añadir datos ---
+            final String TXT_BANATZAILEA = ",";
+            final String CSV_BANATZAILEA = ";";
+
+            try (BufferedReader br = new BufferedReader(new FileReader(txtFile))) {
+                String lerroa;
+                while ((lerroa = br.readLine()) != null) {
+                    String[] datuak = lerroa.split(TXT_BANATZAILEA);
+                    String csvLerroa = "";
+
+                    if (datuak.length == 2) {
+                        String nan = datuak[0];
+                        String adina = datuak[1];
+                        csvLerroa = nan + CSV_BANATZAILEA + "" + CSV_BANATZAILEA + "" + CSV_BANATZAILEA + adina
+                                + CSV_BANATZAILEA + "";
+                        mapaPorNan.put(nan, csvLerroa); // añadir o actualizar
+                    } else if (datuak.length == 5) {
+                        String nan = datuak[0];
+                        csvLerroa = String.join(CSV_BANATZAILEA, datuak);
+                        mapaPorNan.put(nan, csvLerroa); // añadir o actualizar
+                    } else {
+                        System.err.println("OHARRA: Lerroak ez du espero den formatua (2 edo 5 zutabe): " + lerroa);
+                        continue;
+                    }
+                }
+            }
+
+            // --- Reescribir CSV completo ---
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvFile))) {
+                // Cabecera
+                bw.write("NAN;Izena;Abizena;Adina;Helbidea");
+                bw.newLine();
+
+                // Escribir todas las líneas del mapa
+                for (String linea : mapaPorNan.values()) {
+                    bw.write(linea);
+                    bw.newLine();
+                }
+            }
+
+            System.out.println(Gehigarriak.Berdea + "Fitxategia eguneratu da: " + csvPath + Gehigarriak.RESET);
+
         } catch (IOException e) {
             e.printStackTrace();
         }

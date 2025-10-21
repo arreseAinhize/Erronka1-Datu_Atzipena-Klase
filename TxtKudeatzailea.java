@@ -91,7 +91,7 @@ public class TxtKudeatzailea {
         } while (!aukera.equals("8"));
     }
 
-    public static void txtFitxategiakBistaratu() {
+    private static void txtFitxategiakBistaratu() {
         // .txt fitxategiak bistaratu:
         System.out.println(Gehigarriak.Cyan + "================================");
         System.out.println(Gehigarriak.Berdea + "Fitxategi .txt-ak:" + Gehigarriak.Urdina);
@@ -107,7 +107,7 @@ public class TxtKudeatzailea {
 
     }
 
-    public static void txtFitxategiaSortu() {
+    private static void txtFitxategiaSortu() {
         String fileName, path;
         Scanner sc = new Gehigarriak().in;
 
@@ -138,15 +138,14 @@ public class TxtKudeatzailea {
 
     }
 
-    public static void txtFitxategiaIrakurri() {
+    private static void txtFitxategiaIrakurri() {
         String fileName, path;
 
         // .txt fitxategiak bistaratu:
         txtFitxategiakBistaratu();
 
         // fitxategi bat irakurri:
-        System.out
-                .print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena sartu: " + Gehigarriak.RESET);
+        System.out.print(Gehigarriak.Horia + "Sartu irakurri nahi duzun fitxategiaren izena: " + Gehigarriak.RESET);
         fileName = new Gehigarriak().in.next();
         Filtroak.removeSpaces(fileName);
         path = "./fitxategiak/txt/" + fileName + ".txt";
@@ -169,7 +168,7 @@ public class TxtKudeatzailea {
         }
     }
 
-    public static void txtFitxategiaGehitu() {
+    private static void txtFitxategiaGehitu() {
         String fileName, path;
         Scanner sc = new Gehigarriak().in;
 
@@ -256,7 +255,7 @@ public class TxtKudeatzailea {
         }
     }
 
-    public static void txtFitxategiaEguneratu() {
+    private static void txtFitxategiaEguneratu() {
         String fileName, path;
         List<Pertsona> pertsonak = new ArrayList<>();
         Scanner sc = new Gehigarriak().in;
@@ -369,7 +368,7 @@ public class TxtKudeatzailea {
 
     }
 
-    public static void txtFitxategiaEzabatu() {
+    private static void txtFitxategiaEzabatu() {
         String fileName, path;
         Scanner sc = new Gehigarriak().in;
         txtFitxategiakBistaratu();
@@ -377,22 +376,32 @@ public class TxtKudeatzailea {
         fileName = sc.next();
         Filtroak.removeSpaces(fileName);
         path = "./fitxategiak/txt/" + fileName + ".txt";
+        String erantzuna;
+
+        do {
+            System.out.print(
+                    Gehigarriak.Horia + "Zihur zaide fitxategia ezabatu nahi duzula? (Bai/Ez) " + Gehigarriak.RESET);
+            erantzuna = sc.next().toLowerCase();
+        } while (erantzuna != "bai" || erantzuna != "ez");
 
         java.nio.file.Path p = java.nio.file.Paths.get(path);
-        try {
-            boolean deleted = java.nio.file.Files.deleteIfExists(p);
-            if (deleted) {
-                System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
-            } else {
-                System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
+
+        if (erantzuna.equals("bai")) {
+            try {
+                boolean deleted = java.nio.file.Files.deleteIfExists(p);
+                if (deleted) {
+                    System.out.println(Gehigarriak.Berdea + "Fitxategia ondo ezabatu da: " + path + Gehigarriak.RESET);
+                } else {
+                    System.out.println(Gehigarriak.Gorria + "Fitxategia ez da aurkitu: " + path + Gehigarriak.RESET);
+                }
+            } catch (IOException e) {
+                System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu.");
+                System.err.println(e.getMessage() + Gehigarriak.RESET);
             }
-        } catch (IOException e) {
-            System.out.println(Gehigarriak.Gorria + "Errorea: Fitxategia ezin izan da ezabatu.");
-            System.err.println(e.getMessage() + Gehigarriak.RESET);
         }
     }
 
-    public static void txtFitxategiaCSVraBihurtu() {
+    private static void txtFitxategiaCSVraBihurtu() {
         String fileName, path, csvPath;
         Scanner sc = new Gehigarriak().in;
 
@@ -404,7 +413,7 @@ public class TxtKudeatzailea {
         fileName = sc.next();
         Filtroak.removeSpaces(fileName);
         path = "./fitxategiak/txt/" + fileName + ".txt";
-        csvPath = "./fitxategiak/csv/Datuak-CSV.csv";
+        csvPath = "./fitxategiak/csv/" + fileName + "-convert_Form_TXT.csv";
 
         try {
             File txtFile = new File(path);

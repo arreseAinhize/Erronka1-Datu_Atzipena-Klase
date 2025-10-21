@@ -1,4 +1,12 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -432,6 +440,107 @@ public class XmlKudeatzailea {
     }
 
     private static void xmlFitxategiaCSVraBihurtu() {
-        System.out.println("XML fitxategia CSV formatura bihurtu");
+        String fileName, path, csvPath;
+        Scanner sc = new Gehigarriak().in;
+
+        // Mostrar XML existentes
+        xmlFitxategiakBistaratu();
+
+        System.out.println("\nXML fitxategia CSV formatura bihurtu");
+        System.out.print(Gehigarriak.Horia + "Zein XML fitxategi bihurtu nahi duzu? Sartu izena: " + Gehigarriak.RESET);
+        fileName = sc.next();
+        Filtroak.removeSpaces(fileName);
+
+        path = "./fitxategiak/xml/" + fileName + ".xml";
+        csvPath = "./fitxategiak/csv/Datuak-CSV.csv";
+
+        try {
+            File xmlFile = new File(path);
+            if (!xmlFile.exists()) {
+                System.out.println("Fitxategia ez da aurkitu.");
+                return;
+            }
+
+            File csvFile = new File(csvPath);
+            boolean csvExists = csvFile.exists();
+
+            // --- Leer datos actuales del CSV en memoria ---
+            List<String> lineasCSV = new ArrayList<>();
+            Map<String, String> mapaPorNan = new HashMap<>(); // nan -> línea completa
+
+            if (csvExists) {
+                try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+                    String linea;
+                    while ((linea = br.readLine()) != null) {
+                        lineasCSV.add(linea);
+                        if (!linea.startsWith("NAN;") && !linea.trim().isEmpty()) {
+                            String[] partes = linea.split(";", -1);
+                            if (partes.length > 0) {
+                                mapaPorNan.put(partes[0], linea);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- Procesar el XML ---
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+            document.getDocumentElement().normalize();
+
+            NodeList pertsonak = document.getElementsByTagName("pertsona");
+            for (int i = 0; i < pertsonak.getLength(); i++) {
+                Node nodo = pertsonak.item(i);
+                if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+                    Element pertsona = (Element) nodo;
+
+                    String nan = getTagValue("nan", pertsona);
+                    String helbidea = getTagValue("helbidea", pertsona);
+
+                    // Nuevo formato CSV
+                    String csvLerroa = nan + ";" + "" + ";" + "" + ";" + "" + ";" + helbidea;
+
+                    // Si ya existe el NAN, actualiza su línea
+                    if (mapaPorNan.containsKey(nan)) {
+                        mapaPorNan.put(nan, csvLerroa);
+                    } else {
+                        mapaPorNan.put(nan, csvLerroa);
+                    }
+                }
+            }
+
+            // --- Reescribir el CSV completo ---
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvFile))) {
+                // Cabecera
+                bw.write("NAN;Izena;Abizena;Adina;Helbidea");
+                bw.newLine();
+
+                // Escribir todas las líneas del mapa (actualizadas o nuevas)
+                for (String linea : mapaPorNan.values()) {
+                    bw.write(linea);
+                    bw.newLine();
+                }
+            }
+
+            System.out.println(Gehigarriak.Berdea + "Fitxategia eguneratu da: " + csvPath + Gehigarriak.RESET);
+
+        } catch (Exception e) {
+            System.err.println("Errorea XML fitxategia irakurtzean edo idaztean: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
+    /**
+     * Laguntzailea: etiketa baten balioa itzultzen du.
+     */
+    private static String getTagValue(String tag, Element element) {
+        NodeList nList = element.getElementsByTagName(tag);
+        if (nList != null && nList.getLength() > 0) {
+            Node node = nList.item(0);
+            return node.getTextContent().trim();
+        }
+        return "";
+    }
+
 }
